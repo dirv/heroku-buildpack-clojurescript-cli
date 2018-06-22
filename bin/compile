@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir> <env-dir>
+
+# fail fast
+set -e
+
+#BPLOG_PREFIX="buildpack.clojurescript-cli-only"
+
+# parse args
+export BUILD_DIR=$1
+export CACHE_DIR=$2
+export ENV_DIR=$3
+
+BP_DIR=$(cd $(dirname $0)/..; pwd)
+LIB_DIR=$BP_DIR/lib
+
+source $LIB_DIR/common.sh
+source <(curl --retry 3 -fsSL $BUILDPACK_STDLIB_URL)
+
+export_env $ENV_DIR "." "JAVA_OPTS"
+
+CLOJURE_VERSION="1.9.0.381"
+CLOJURE_BIN_PATH="$BUILD_DIR/bin/clojure"
+
+CLOJURE_TOOLS_URL="https://download.clojure.org/install/clojure-tools-$CLOJURE_VERSION.tar.gz"
+CLOJURE_TOOLS_CACHE_PATH="$CACHE_DIR/clojure-tools-$CLOJURE_VERSION.tar.gz"
+if [ ! -r "$CLOJURE_TOOLS_CACHE_PATH" ]; then
+  echo "-----> Installing Clojure Tools"
+  echo "       Downloading: clojure-tools-$CLOJURE_VERSION.tar.gz"
+  curl --retry 3 --silent --show-error -L -o "$CLOJURE_TOOLS_CACHE_PATH" $CLOJURE_TOOLS_URL
+else
+  echo "-----> Using cached Clojure Tools $CLOJURE_VERSION"
+fi
+
+CLOJURE_TOOLS_SLUG_PATH="$BUILD_DIR/.clojure/clojure-tools-$CLOJURE_VERSION.tar.gz"
+
+mkdir -p "$BUILD_DIR/.clojure"
+cp "$CLOJURE_TOOLS_CACHE_PATH" "$CLOJURE_TOOLS_SLUG_PATH"
+cd $BUILD_DIR/.clojure
+tar xzf $CLOJURE_TOOLS_SLUG_PATH
+
+CLOJURE_BIN_DIR="$BUILD_DIR/.clojure/bin"
+CLOJURE_LIB_DIR="$BUILD_DIR/.clojure/lib/clojure"
+
+mkdir -p $CLOJURE_BIN_DIR
+mkdir -p $CLOJURE_LIB_DIR
+
+echo "-----> Installing libs into $CLOJURE_LIB_DIR"
+install -Dm644 $BUILD_DIR/.clojure/clojure-tools/deps.edn "$CLOJURE_LIB_DIR/deps.edn"
+install -Dm644 $BUILD_DIR/.clojure/clojure-tools/example-deps.edn "$CLOJURE_LIB_DIR/example-deps.edn"
+install -Dm644 $BUILD_DIR/.clojure/clojure-tools/clojure-tools-$CLOJURE_VERSION.jar "$CLOJURE_LIB_DIR/libexec/clojure-tools-$CLOJURE_VERSION.jar"
+
+echo "-----> Installing clojure into $CLOJURE_BIN_DIR"
+sed -i -e 's@PREFIX@'"$CLOJURE_LIB_DIR"'@g' $BUILD_DIR/.clojure/clojure-tools/clojure
+install -Dm755 $BUILD_DIR/.clojure/clojure-tools/clojure "$CLOJURE_BIN_DIR/clojure"
+
+# unpack existing cache
+CACHED_DIRS=".m2"
+for DIR in $CACHED_DIRS; do
+  if [ ! -d $BUILD_DIR/$DIR ]; then
+    cache_copy $DIR $CACHE_DIR $BUILD_DIR
+  fi
+done
+
+echo "-----> Building with Clojure Tools"
+
+# Calculate build command
+if [ "$BUILD_COMMAND" = "" ]; then
+  BUILD_COMMAND="clojure -m cljs.main -co config/compiler.edn -c"
+fi
+
+echo "       Running: $BUILD_COMMAND"
+
+cd $BUILD_DIR
+
+PATH="$CLOJURE_BIN_DIR":$PATH \
+JVM_OPTS="-Duser.home=$BUILD_DIR" \
+  $BUILD_COMMAND 2>&1 | sed -u 's/^/       /'
+if [ "${PIPESTATUS[*]}" != "0 0" ]; then
+  echo " !     Failed to build."
+  exit 1
+fi
+
+# populate profile.d
+PROFILE_PATH="$BUILD_DIR/.profile.d/clojurescript-cli.sh"
+mkdir -p $(dirname $PROFILE_PATH)
+echo 'export PATH="$HOME/.jdk/bin:$HOME/.clojure/bin:$PATH"' >> $PROFILE_PATH
+
+# repack cache with new assets
+mkdir -p $CACHE_DIR
+for DIR in $CACHED_DIRS; do
+  cache_copy $DIR $BUILD_DIR $CACHE_DIR
+done
+
+if [ "$CLOJURE_INCLUDE_IN_SLUG" = "no" ]; then
+    rm -f "$CLOJURE_TOOLS_SLUG_PATH"
+    rm -rf $CACHED_DIRS
+fi
+
