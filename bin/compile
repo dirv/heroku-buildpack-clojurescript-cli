@@ -19,6 +19,9 @@ source <(curl --retry 3 -fsSL $BUILDPACK_STDLIB_URL)
 
 export_env $ENV_DIR "." "JAVA_OPTS"
 
+# Install JDK from jvm-common
+install_jdk ${BUILD_DIR}
+
 CLOJURE_VERSION="1.9.0.381"
 CLOJURE_BIN_PATH="$BUILD_DIR/bin/clojure"
 
