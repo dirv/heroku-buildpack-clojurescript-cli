@@ -46,12 +46,12 @@ CLOJURE_BIN_DIR="$BUILD_DIR/.clojure/bin"
 CLOJURE_LIB_DIR="$BUILD_DIR/.clojure/lib/clojure"
 
 mkdir -p $CLOJURE_BIN_DIR
-mkdir -p $CLOJURE_LIB_DIR/libexec
+mkdir -p $CLOJURE_LIB_DIR
 
 echo "-----> Installing libs into $CLOJURE_LIB_DIR"
-cp $BUILD_DIR/.clojure/clojure-tools/deps.edn "$CLOJURE_LIB_DIR/deps.edn"
-cp $BUILD_DIR/.clojure/clojure-tools/example-deps.edn "$CLOJURE_LIB_DIR/example-deps.edn"
-cp $BUILD_DIR/.clojure/clojure-tools/clojure-tools-$CLOJURE_VERSION.jar "$CLOJURE_LIB_DIR/libexec/clojure-tools-$CLOJURE_VERSION.jar"
+install -Dm644 $BUILD_DIR/.clojure/clojure-tools/deps.edn "$CLOJURE_LIB_DIR/deps.edn"
+install -Dm644 $BUILD_DIR/.clojure/clojure-tools/example-deps.edn "$CLOJURE_LIB_DIR/example-deps.edn"
+install -Dm644 $BUILD_DIR/.clojure/clojure-tools/clojure-tools-$CLOJURE_VERSION.jar "$CLOJURE_LIB_DIR/libexec/clojure-tools-$CLOJURE_VERSION.jar"
 
 echo "-----> Installing clojure into $CLOJURE_BIN_DIR"
 sed -i -e 's@PREFIX@'"$CLOJURE_LIB_DIR"'@g' $BUILD_DIR/.clojure/clojure-tools/clojure
