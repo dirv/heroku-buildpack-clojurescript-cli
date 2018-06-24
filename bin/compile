@@ -68,9 +68,8 @@ done
 echo "-----> Building with Clojure Tools"
 
 # Calculate build command
-JVM_OPTS="-Duser.home=$BUILD_DIR"
 if [ "$BUILD_COMMAND" = "" ]; then
-  BUILD_COMMAND="clojure -J$JVM_OPTS -m cljs.main -co config/compiler.edn -c"
+  BUILD_COMMAND="clojure -m cljs.main -co config/compiler.edn -c"
 fi
 
 echo "       Running: $BUILD_COMMAND"
@@ -79,19 +78,18 @@ cd $BUILD_DIR
 
 PATH="$CLOJURE_BIN_DIR":$PATH \
 CLJ_CONFIG="$BUILD_DIR/.clojure" \
+JAVA_TOOL_OPTIONS="-Duser.home=$BUILD_DIR" \
   $BUILD_COMMAND 2>&1 | sed -u 's/^/       /'
 if [ "${PIPESTATUS[*]}" != "0 0" ]; then
   echo " !     Failed to build."
   exit 1
 fi
 
-echo "Content of m2:"
-echo $(ls -Ra $BUILD_DIR/.m2)
-
 # populate profile.d
 PROFILE_PATH="$BUILD_DIR/.profile.d/clojurescript-cli.sh"
 mkdir -p $(dirname $PROFILE_PATH)
 echo 'export PATH="$HOME/.jdk/bin:$HOME/.clojure/bin:$PATH"' >> $PROFILE_PATH
+echo 'export JAVA_TOOL_OPTIONS="-Duser.home=$HOME"' >> $PROFILE_PATH
 
 # repack cache with new assets
 mkdir -p $CACHE_DIR
