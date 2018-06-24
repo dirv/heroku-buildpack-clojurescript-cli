@@ -68,8 +68,9 @@ done
 echo "-----> Building with Clojure Tools"
 
 # Calculate build command
+JVM_OPTS="-Duser.home=$BUILD_DIR"
 if [ "$BUILD_COMMAND" = "" ]; then
-  BUILD_COMMAND="clojure -m cljs.main -co config/compiler.edn -c"
+  BUILD_COMMAND="clojure -J$JVM_OPTS -m cljs.main -co config/compiler.edn -c"
 fi
 
 echo "       Running: $BUILD_COMMAND"
