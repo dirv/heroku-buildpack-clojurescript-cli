@@ -85,6 +85,9 @@ if [ "${PIPESTATUS[*]}" != "0 0" ]; then
   exit 1
 fi
 
+echo "Content of m2:"
+echo $(ls -Ra $BUILD_DIR/.m2)
+
 # populate profile.d
 PROFILE_PATH="$BUILD_DIR/.profile.d/clojurescript-cli.sh"
 mkdir -p $(dirname $PROFILE_PATH)
