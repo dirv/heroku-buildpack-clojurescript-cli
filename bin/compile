@@ -54,7 +54,7 @@ install -Dm644 $BUILD_DIR/.clojure/clojure-tools/example-deps.edn "$CLOJURE_LIB_
 install -Dm644 $BUILD_DIR/.clojure/clojure-tools/clojure-tools-$CLOJURE_VERSION.jar "$CLOJURE_LIB_DIR/libexec/clojure-tools-$CLOJURE_VERSION.jar"
 
 echo "-----> Installing clojure into $CLOJURE_BIN_DIR"
-sed -i -e 's@PREFIX@$HOME/.clojure/lib/clojure@g' $BUILD_DIR/.clojure/clojure-tools/clojure
+sed -i -e 's@PREFIX@$BUILD_DIR/.clojure/lib/clojure@g' $BUILD_DIR/.clojure/clojure-tools/clojure
 install -Dm755 $BUILD_DIR/.clojure/clojure-tools/clojure "$CLOJURE_BIN_DIR/clojure"
 
 # unpack existing cache
