@@ -46,7 +46,7 @@ CLOJURE_BIN_DIR="$BUILD_DIR/.clojure/bin"
 CLOJURE_LIB_DIR="$BUILD_DIR/.clojure/lib/clojure"
 
 mkdir -p $CLOJURE_BIN_DIR
-mkdir -p $CLOJURE_LIB_DIR
+mkdir -p $CLOJURE_LIB_DIR/libexec
 
 echo "-----> Installing libs into $CLOJURE_LIB_DIR"
 cp $BUILD_DIR/.clojure/clojure-tools/deps.edn "$CLOJURE_LIB_DIR/deps.edn"
