@@ -8,7 +8,7 @@ I think eventually this could be useful for Clojure apps too, especially if the 
 
 # For it to work
 
-Both `deps.edn` and `config/compiler.edn` must be present in the project root.
+Both `deps.edn` and `prod.cljs.edn` must be present in the project root.
 
 # Still outstanding
 
