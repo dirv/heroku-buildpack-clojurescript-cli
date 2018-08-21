@@ -69,7 +69,7 @@ echo "-----> Building with Clojure Tools"
 
 # Calculate build command
 if [ "$BUILD_COMMAND" = "" ]; then
-  BUILD_COMMAND="clojure -m cljs.main -co prod.cljs.edn -c"
+  BUILD_COMMAND="clojure -A:build-cljs"
 fi
 
 echo "       Running: $BUILD_COMMAND"
