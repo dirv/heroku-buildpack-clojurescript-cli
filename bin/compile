@@ -85,6 +85,9 @@ if [ "${PIPESTATUS[*]}" != "0 0" ]; then
   exit 1
 fi
 
+# delete .cpcache
+rm -rf $BUILD_DIR/.cpcache
+
 # populate profile.d
 PROFILE_PATH="$BUILD_DIR/.profile.d/clojurescript-cli.sh"
 mkdir -p $(dirname $PROFILE_PATH)
